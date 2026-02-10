@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ho una domanda per te...</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root{
+      --bg1:#fff0f3;
+      --bg2:#ffe7ee;
+      --ink:#2b2b2b;
+      --pink:#ff4d6d;
+      --pink2:#ff7a90;
+      --muted:#adb5bd;
+      --card:#ffffffcc;
+      --shadow: 0 12px 28px rgba(0,0,0,.12);
+      --radius: 22px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, var(--bg2), transparent 60%),
+        radial-gradient(900px 500px at 80% 20%, #ffeef4, transparent 55%),
+        linear-gradient(180deg, var(--bg1), #ffffff);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      color:var(--ink);
+      overflow:hidden;
+      text-align:center;
+    }
+
+    .hearts{
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.22;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255,77,109,.18) 0 3px, transparent 3px),
+        radial-gradient(circle at 30% 70%, rgba(255,122,144,.16) 0 3px, transparent 3px),
+        radial-gradient(circle at 70% 30%, rgba(255,77,109,.14) 0 2.5px, transparent 2.5px),
+        radial-gradient(circle at 90% 80%, rgba(255,122,144,.14) 0 2.5px, transparent 2.5px);
+      filter: blur(.2px);
+    }
+
+    .wrap{ width:min(560px, 100%); position:relative; z-index:1; }
+    .card{
+      background:var(--card);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.65);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+    }
+
+    .top{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+
+    .hero-img{
+      width: 180px;
+      height: 180px;
+      border-radius: 26px;
+      object-fit: cover;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.14);
+      border: 3px solid rgba(255,255,255,.8);
+      background:#fff;
+    }
+
+    h1{
+      margin: 12px 0 10px;
+      font-size: clamp(22px, 4.2vw, 30px);
+      line-height:1.15;
+      color: var(--pink);
+      letter-spacing: .2px;
+    }
+
+    .quotes{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin: 14px 0 10px;
+    }
+
+    .quote{
+      background: #ffffffb8;
+      border: 1px solid rgba(0,0,0,.05);
+      border-radius: 16px;
+      padding: 12px 12px;
+      text-align:left;
+      box-shadow: 0 6px 14px rgba(0,0,0,.06);
+    }
+    .quote .who{
+      font-weight:800;
+      font-size: 12px;
+      letter-spacing:.6px;
+      text-transform:uppercase;
+      color:#7a7a7a;
+      margin-bottom:6px;
+    }
+    .quote .txt{
+      margin:0;
+      font-size: 14px;
+      line-height:1.35;
+    }
+
+    .ps{
+      margin: 10px 0 0;
+      font-size: 13px;
+      opacity: .85;
+    }
+    .ps strong{ color: #555; }
+
+    .btn-group{
+      display:flex;
+      gap: 14px;
+      justify-content:center;
+      align-items:center;
+      flex-wrap:wrap;
+      padding-top: 14px;
+      min-height: 110px;
+      position:relative;
+    }
+
+    button{
+  position: relative;
+  z-index: 5;   /* sta sopra alla smallprint */
+      -webkit-tap-highlight-color: transparent;
+      padding: 14px 22px;
+      font-size: 18px;
+      font-weight: 800;
+      border:none;
+      border-radius: 999px;
+      cursor:pointer;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      touch-action: manipulation;
+      user-select:none;
+      max-width: 92vw;
+      white-space: normal;
+      line-height: 1.15;
+      text-align: center;
+      word-break: normal;        /* non spezza parole a caso */
+    }
+    button:active{ transform: scale(.98); }
+
+    #yesBtn{
+      background: linear-gradient(180deg, var(--pink2), var(--pink));
+      color:white;
+      box-shadow: 0 10px 22px rgba(255,77,109,.35);
+      position: relative;
+    }
+    #yesBtn:hover{ filter: brightness(1.02); }
+
+    #noBtn{
+      background: linear-gradient(180deg, #c8ced6, var(--muted));
+      color:white;
+      box-shadow: 0 8px 18px rgba(0,0,0,.12);
+      position:relative;
+    }
+
+    .smallprint{
+  margin-top: 10px;
+  font-size: 12px;
+  opacity:.55;
+  position: relative;
+  z-index: 1;   /* sta sotto */
+}
+
+    .hidden{ display:none; }
+
+    .success h1{ color: var(--pink); }
+    .success .big{
+      font-size: 16px;
+      margin: 10px 0 0;
+      opacity:.92;
+      line-height: 1.35;
+    }
+
+    /* piccolo "bounce" quando il SÌ si muove */
+    @keyframes pop {
+      0%   { transform: translate(0,0) scale(1); }
+      40%  { transform: translate(var(--dx), var(--dy)) scale(1.06); }
+      100% { transform: translate(0,0) scale(1); }
+    }
+    .pop { animation: pop .28s ease; }
+
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+      clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hearts" aria-hidden="true"></div>
+
+  <main class="wrap" aria-live="polite">
+    <!-- MAIN -->
+    <section id="main-content" class="card">
+      <div class="top">
+        <img class="hero-img"
+             src="https://media.giphy.com/media/xUOwGiaTTzWvEyZ5cc/giphy.gif"
+             alt="Friends lobster GIF" />
+      </div>
+
+      <h1>Vuoi essere la mia aragostina? 🦞❤️</h1>
+
+      <div class="quotes" aria-label="Friends quotes (The One with the Prom Video)">
+        <div class="quote">
+          <div class="who">Phoebe</div>
+          <p class="txt">“Because she’s your lobster.”</p>
+        </div>
+        <div class="quote">
+          <div class="who">Phoebe</div>
+          <p class="txt">“It’s a known fact that lobsters fall in love and mate for life.”</p>
+        </div>
+        <div class="quote">
+          <div class="who">Phoebe</div>
+          <p class="txt">“You can actually see old lobster couples… holding claws.”</p>
+        </div>
+      </div>
+
+      <p class="ps">P.S. <strong>Phoebe è il mio personaggio preferito.</strong> 🫶</p>
+
+      <div class="btn-group">
+        <button id="yesBtn" type="button">SÌ 🥰</button>
+        <button id="noBtn" type="button" aria-describedby="noHint">No 🙃</button>
+        <span id="noHint" class="sr-only">Questo pulsante potrebbe muoversi.</span>
+      </div>
+
+      <div class="smallprint">*(il “No” prova a resistere, ma è destinato a perdere)*</div>
+    </section>
+
+    <!-- SUCCESS -->
+    <section id="success-message" class="card hidden success">
+  <img class="hero-img"
+       src="https://media1.tenor.com/m/tTBmrUEjqBAAAAAd/lobster-friends.gif"
+       alt="Phoebe lobster GIF" />
+  <h1>Síii, anche io voglio essere la tua aragostina 🥹🦞❤️</h1>
+</section>
+  </main>
+
+  <script>
+    // --- STATE ---
+    let yesPad = 14;      // cresce tanto il bottone
+    let yesFont = 18;     // cresce piano il testo
+    let noMoves = 0;
+    let yesLevel = 0;
+    let yesArmed = false; // prima volta: conferma "sicura sicura?"
+
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn  = document.getElementById('noBtn');
+
+    // NO frasi meme (personalizzate)
+    const noPhrases = [
+      "No 🙃",
+      "Linda, sei sicura? 😳",
+      "Ma dai… 😂",
+      "Io non ho visto niente 😇",
+      "Ripensaci un attimo 😌",
+      "Ok ok, quasi… 🙄",
+      "Sto scappando 🏃‍♀️💨",
+      "Non mi prenderai mai 😈",
+      "Ehm… no? 😅",
+      "Plot twist: sì 😳",
+      "Ancora? Ma sei testarda 😂",
+      "This is not happening 😆"
+    ];
+
+    // SÌ frasi “sempre più forti” (dolce+meme)
+    const yesPhrases = [
+      "SÌ 🥰",
+      "Sì… sono la tua aragostina 🦞❤️",
+      "Sì sì: LA TUA aragostina 😤🦞",
+      "Ok: sono la tua SUPER aragostina 💖🦞✨",
+      "Aragostina livello LEGENDARIO 🏆🦞",
+      "Aragostina ufficiale di Matteo ✅🦞",
+      "Sì, firmo col sangue (scherzo) 😇🦞",
+      "SÌ E BASTA 😤❤️🦞"
+    ];
+
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+function keepOnScreen(btn, pad = 12) {
+  // dopo che il testo/padding cambia, aspettiamo un frame per avere le nuove dimensioni
+  requestAnimationFrame(() => {
+    const rect = btn.getBoundingClientRect();
+
+    const maxX = window.innerWidth  - rect.width  - pad;
+    const maxY = window.innerHeight - rect.height - pad;
+
+    // se non è fixed, lo rendiamo fixed mantenendo posizione attuale
+    if (getComputedStyle(btn).position !== "fixed") {
+      btn.style.position = "fixed";
+      btn.style.left = rect.left + "px";
+      btn.style.top  = rect.top  + "px";
+    }
+
+    const left = parseFloat(btn.style.left || rect.left);
+    const top  = parseFloat(btn.style.top  || rect.top);
+
+    btn.style.left = clamp(left, pad, Math.max(pad, maxX)) + "px";
+    btn.style.top  = clamp(top,  pad, Math.max(pad, maxY)) + "px";
+  });
+}
+
+    function nudgeYesButton(preferUp = false) {
+  // micro animazione
+  const dx = (Math.random() * 26 - 13).toFixed(0) + "px";
+  keepOnScreen(yesBtn);
+  const dy = (Math.random() * 18 - 9).toFixed(0) + "px";
+  yesBtn.style.setProperty("--dx", dx);
+  yesBtn.style.setProperty("--dy", dy);
+  yesBtn.classList.remove("pop");
+  void yesBtn.offsetWidth;
+  yesBtn.classList.add("pop");
+
+  // Fissiamo il bottone e lo teniamo SEMPRE dentro lo schermo
+  yesBtn.style.position = "fixed";
+  yesBtn.style.zIndex = "10";
+
+  const pad = 12;
+
+  // se non ha ancora una posizione, centrato circa
+  const currentLeft = parseFloat(yesBtn.style.left || "0");
+  const currentTop  = parseFloat(yesBtn.style.top  || "0");
+  if (!yesBtn.style.left || !yesBtn.style.top) {
+    yesBtn.style.left = Math.max(pad, (window.innerWidth  / 2) - 80) + "px";
+    yesBtn.style.top  = Math.max(pad, (window.innerHeight / 2) + 40) + "px";
+  }
+
+  // dopo aver assicurato una posizione, ricalcoliamo dimensioni reali
+  const rect = yesBtn.getBoundingClientRect();
+
+  const maxX = window.innerWidth  - rect.width  - pad;
+  const maxY = window.innerHeight - rect.height - pad;
+
+  // movimento: se preferUp, spingi verso l’alto più spesso
+  const moveX = (Math.random() * 70 - 35);              // -35..+35
+  const moveY = preferUp ? -(Math.random() * 90 + 25)   // -25..-115 (su!)
+                      : (Math.random() * 60 - 30);      // -30..+30
+
+  const targetX = clamp(rect.left + moveX, pad, maxX);
+  const targetY = clamp(rect.top  + moveY, pad, maxY);
+
+  yesBtn.style.left = targetX + "px";
+  yesBtn.style.top  = targetY + "px";
+}
+
+    function powerUpYes() {
+      yesLevel = Math.min(yesLevel + 1, yesPhrases.length - 1);
+      yesBtn.textContent = yesPhrases[yesLevel];
+
+  // 1) Il bottone cresce TANTO (padding), il testo cresce PIANO (font)
+      yesPad = Math.min(yesPad + 10, 44);      // qui puoi aumentare/diminuire la "bottonaggine"
+      yesFont = Math.min(yesFont + 2, 28);     // qui limitiamo la scritta per farla stare sempre
+yesBtn.style.maxWidth = "92vw";
+keepOnScreen(yesBtn);
+      yesBtn.style.fontSize = yesFont + "px";
+      yesBtn.style.padding  = yesPad + "px " + (yesPad * 1.6) + "px";
+
+  // 2) Spostiamo il SÌ in alto (così non va in basso fuori schermo)
+      nudgeYesButton(true);
+         }
+
+    function moveNoButton() {
+      noMoves++;
+      keepOnScreen(noBtn);
+
+      // cambia frase (meme)
+      noBtn.textContent = noPhrases[noMoves % noPhrases.length];
+
+      // sposta NO restando in schermo
+      const pad = 12;
+      const btnW = noBtn.offsetWidth;
+      const btnH = noBtn.offsetHeight;
+
+      const maxX = window.innerWidth  - btnW - pad;
+      const maxY = window.innerHeight - btnH - pad;
+
+      const x = clamp(Math.random() * maxX, pad, maxX);
+      const y = clamp(Math.random() * maxY, pad, maxY);
+
+      noBtn.style.position = "fixed";
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+
+      // ogni volta che Linda prova a cliccare NO… il SÌ “si carica”
+      powerUpYes();
+
+      // dopo un po' il NO cede
+      if (noMoves >= 9)  noBtn.textContent = "Ok basta, hai vinto 😂";
+      noBtn.style.maxWidth = "92vw";
+keepOnScreen(noBtn);
+      if (noMoves >= 11) noBtn.textContent = "…va bene 😳";
+      if (noMoves >= 13) noBtn.textContent = "SÌ (ma non dirlo a nessuno) 🤫";
+    }
+
+function handleNo(e) {
+  // blocca click "normale" e touch doppio
+  e.preventDefault();
+  e.stopPropagation();
+  moveNoButton();
+}
+
+// Desktop
+noBtn.addEventListener('mouseenter', moveNoButton);
+
+// Mobile + Desktop click
+noBtn.addEventListener('pointerdown', handleNo);
+
+    // Gestione SÌ: primo click -> conferma, secondo click -> festa
+    yesBtn.addEventListener('click', () => {
+      if (!yesArmed) {
+        yesArmed = true;
+        yesBtn.textContent = "Sicura sicura? Non puoi tornare indietro 😳";
+        // un piccolo bump per enfatizzare
+        // cresce un po' il bottone, ma testo piano (per non andare fuori)
+yesPad = Math.min(yesPad + 10, 44);
+yesFont = Math.min(yesFont + 1, 28);
+
+yesBtn.style.fontSize = yesFont + "px";
+yesBtn.style.padding  = yesPad + "px " + (yesPad * 1.6) + "px";
+
+nudgeYesButton(true);
+        return;
+      }
+      celebrate();
+    });
+
+    function celebrate() {
+      document.getElementById('main-content').classList.add('hidden');
+      document.getElementById('success-message').classList.remove('hidden');
+
+      const duration = 4500;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 28, spread: 360, ticks: 65, zIndex: 0 };
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+
+        const particleCount = Math.floor(55 * (timeLeft / duration));
+        confetti(Object.assign({}, defaults, {
+          particleCount,
+          origin: { x: Math.random(), y: Math.random() - 0.2 }
+        }));
+      }, 240);
+    }
+  </script>
+</body>
+</html>
